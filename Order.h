@@ -5,17 +5,32 @@
 #ifndef FASTLOB_ORDER_H
 #define FASTLOB_ORDER_H
 
-#include <cstdint>
-#include <memory>
+#include "utility.h"
+#include <type_traits>
 
-struct Order {
-    uint64_t order_id;
-    uint64_t price;
-    uint64_t volume;
+typedef struct Order {
+    OrderIDType order_id;
+    VolumeType volume;
+    PriceType price;
+    bool isBuy;
 
-    std::unique_ptr<Order> prev;
-    std::unique_ptr<Order> next;
+    struct Order* prev;
+    struct Order* next;
 
-    Order(uint64_t order_id, uint64_t price, uint64_t volume) : order_id(order_id), price(price), volume(volume), next(nullptr), prev(nullptr) {}
+} Order;
+
+class PriceLevel {
+public:
+    PriceLevel() = default;
+    PriceLevel(PriceType _price, LevelType _ptr)
+    : m_price(_price), m_ptr(_ptr)
+    {
+    }
+    PriceType m_price;
+    LevelType m_ptr;
 };
+
+
+
+
 #endif //FASTLOB_ORDER_H
