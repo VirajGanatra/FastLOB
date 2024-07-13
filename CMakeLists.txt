@@ -3,6 +3,7 @@ project(FastLOB)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_library(FastLOB SHARED library.cpp
+add_library(FastLOB SHARED
         Order.h
-        OrderPool.h)
+        OrderPool.h
+        utility.h)
