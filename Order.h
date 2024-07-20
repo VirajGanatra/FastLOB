@@ -23,11 +23,13 @@ class PriceLevel {
 public:
     PriceLevel() = default;
     PriceLevel(PriceType _price, LevelType _ptr)
-    : m_price(_price), m_ptr(_ptr)
-    {
-    }
+    : m_price(_price), m_ptr(_ptr) {}
     PriceType m_price;
     LevelType m_ptr;
+
+    bool operator<(const PriceLevel& other) const {
+        return m_price < other.m_price;
+    }
 };
 
 
