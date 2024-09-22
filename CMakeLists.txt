@@ -7,4 +7,6 @@ add_library(FastLOB SHARED
         Order.h
         OrderPool.h
         utility.h
-        OrderPool.cpp)
+        OrderPool.cpp
+        OrderBook.cpp
+        OrderBook.h)
