@@ -1,13 +1,4 @@
-//
-// Created by viraj on 20/06/24.
-//
-
-//
-// OrderPool.h
-//
-// This header file defines the OrderPool and level classes for managing orders in a trading system.
-// It includes mechanisms for allocating, deallocating, and accessing orders efficiently.
-//
+// OrderPool.hpp
 
 #ifndef FASTLOB_ORDERPOOL_H
 #define FASTLOB_ORDERPOOL_H
@@ -19,113 +10,73 @@
 #include "utility.h"
 
 /**
- * Template class for managing a pool of orders.
+ * @brief A template class for managing a pool of orders.
  *
- * @tparam T The type of the orders in the pool.
+ * This class is designed to efficiently manage a collection of orders, allowing for
+ * the allocation and deallocation of order objects. It uses a vector to store allocated
+ * orders and another vector to keep track of freed orders for reuse. This approach helps
+ * in reducing the overhead of frequently creating and destroying order objects.
+ *
+ * @tparam T The type of the order object.
  * @tparam SizeType The type used for sizing and indexing the pool.
- * @tparam PtrType The pointer type used for order pointers.
+ * @tparam PtrType The type used for pointers to the order objects.
  */
 template <class T, typename SizeType, typename PtrType>
 class OrderPool {
 public:
-    using ptr_t = PtrType; ///< Type alias for the pointer type.
-    using size_type = SizeType; ///< Type alias for the size type.
+    using ptr_t = PtrType; ///< Type for pointers to order objects.
+    using size_type = SizeType; ///< Type for sizing and indexing the pool.
 
     /**
-     * Constructor for OrderPool.
-     * Initializes the pool with reserved space for efficiency.
-     */
-    OrderPool() {
-        m_allocated.reserve(1000);
-        m_free.reserve(1000);
-    }
-
-    /**
-     * Allocates an order from the pool.
+     * @brief Constructs a new Order Pool object.
      *
-     * @return A pointer to the allocated order.
+     * Initializes the pool with no allocated or free orders, reserving initial
+     * capacity as needed.
      */
-    T* allocate() {
-        if (m_free.empty()) {
-            m_allocated.push_back(T());
-            return &m_allocated.back();
-        } else {
-            T* ptr = m_free.back();
-            m_free.pop_back();
-            return ptr;
-        }
-    }
+    OrderPool();
 
     /**
-     * Deallocates an order, returning it to the pool.
+     * @brief Allocates an order object from the pool.
      *
-     * @param ptr Pointer to the order to deallocate.
+     * If there are no free orders available, a new order is created and added to the pool.
+     * Otherwise, a previously deallocated order is reused.
+     *
+     * @return OrderIDType A pointer to the allocated order object.
      */
-    void deallocate(T* ptr) {
-        m_free.push_back(ptr);
-    }
+    PtrType allocate();
 
     /**
-     * Retrieves an order from the pool by index.
+     * @brief Deallocates an order object, returning it to the pool.
      *
-     * @param index The index of the order to retrieve.
-     * @return A pointer to the order.
+     * The deallocated order is added to the list of free orders for reuse.
+     *
+     * @param ptr A pointer to the order object to be deallocated.
      */
-    T* get(size_type index) {
-        return &m_allocated[static_cast<uint32_t>(index)];
-    }
+    void deallocate(OrderIDType ptr);
 
     /**
-     * Gets the current size of the pool.
+     * @brief Retrieves an order object from the pool by its index.
      *
-     * @return The size of the pool.
+     * This function provides access to an order object based on its index in the
+     * allocated vector. It is useful for iterating over all allocated orders.
+     *
+     * @param index The index of the order object in the pool.
+     * @return T* A pointer to the order object at the specified index.
      */
-    size_type size() const {
-        return static_cast<size_type>(m_allocated.size());
-    }
+    T* get(size_type index);
+
+    /**
+     * @brief Gets the current size of the pool.
+     *
+     * This includes both allocated and deallocated (free) orders.
+     *
+     * @return size_type The total number of orders currently managed by the pool.
+     */
+    size_type size() const;
 
 private:
     std::vector<T> m_allocated; ///< Vector of allocated orders.
-    std::vector<ptr_t> m_free; ///< Vector of pointers to free orders.
+    std::vector<ptr_t> m_free; ///< Vector of pointers to deallocated (free) orders.
 };
 
-/**
- * Class representing a level in an order book.
- */
-class level {
-public:
-    uint64_t price; ///< Price level of the orders.
-    OrderPool<Order, uint32_t, Order*> order_pool; ///< Pool of orders at this price level.
-
-    /**
-     * Constructor for a level.
-     *
-     * @param price The price of the level.
-     */
-    level(uint64_t price) : price(price) {}
-
-    /**
-     * Adds an order to the level.
-     *
-     * @param order_id The ID of the order.
-     * @param volume The volume of the order.
-     * @return A pointer to the added order.
-     */
-    Order* add_order(uint64_t order_id, uint64_t volume) {
-        Order* order = order_pool.allocate();
-        order->order_id = order_id;
-        order->volume = volume;
-        return order;
-    }
-
-    /**
-     * Removes an order from the level.
-     *
-     * @param order Pointer to the order to remove.
-     */
-    void remove_order(Order* order) {
-        order_pool.deallocate(order);
-    }
-};
-
-#endif //FASTLOB_ORDERPOOL_H
+#endif FASTLOB_ORDERPOOL_H
